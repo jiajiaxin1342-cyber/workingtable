@@ -1,0 +1,342 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   startup.css — Claude.ai 设计语言
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.startup-scene {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Tab 导航（underline 风格）──────────────────────────────────────────── */
+.startup-tabs {
+  display: flex;
+  gap: 0;
+  padding: 14px 20px 0;
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.startup-tab-btn {
+  padding: 9px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  margin-bottom: -1px;
+}
+
+.startup-tab-btn:hover { color: var(--text-secondary); }
+
+.startup-tab-btn.active {
+  color: var(--accent-light);
+  border-bottom-color: var(--accent);
+}
+
+/* 内容区滚动容器 */
+.startup-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* ── Weekly Review ──────────────────────────────────────────────────────── */
+
+.weekly-form {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.weekly-form-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.weekly-question {
+  margin-bottom: 16px;
+}
+
+.weekly-question-label {
+  font-size: 12px;
+  color: var(--accent-light);
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.weekly-question-textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.65;
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 72px;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.weekly-question-textarea:focus {
+  border-color: var(--border-focus);
+}
+
+.weekly-question-textarea::placeholder { color: var(--text-muted); }
+
+.weekly-save-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: var(--accent-bg);
+  color: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  margin-top: 4px;
+}
+
+.weekly-save-btn:hover { background: rgba(217,119,6,0.18); border-color: var(--accent); }
+.weekly-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 历史记录 */
+.weekly-history-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 10px;
+}
+
+.weekly-record {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition);
+}
+
+.weekly-record:hover { border-color: var(--border-hover); }
+
+.weekly-record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.weekly-record-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.weekly-record-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition);
+}
+
+.weekly-record-toggle:hover { color: var(--text-primary); }
+
+.weekly-record-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.weekly-record-q {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.weekly-record-q span {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.weekly-record-full {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.weekly-record-full-q {
+  font-size: 12px;
+}
+
+.weekly-record-full-q .q-label {
+  color: var(--accent-light);
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.weekly-record-full-q .q-body {
+  color: var(--text-secondary);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+/* ── Progress Board ──────────────────────────────────────────────────────── */
+
+.progress-board {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.progress-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition);
+}
+
+.progress-card:hover { border-color: var(--border-hover); }
+
+.progress-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.progress-card-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.progress-status-tag {
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+}
+
+.progress-status-tag.not_started {
+  background: rgba(90,87,96,0.2);
+  color: var(--text-secondary);
+}
+
+.progress-status-tag.in_progress {
+  background: var(--accent-bg);
+  color: var(--accent-light);
+}
+
+.progress-status-tag.stable {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+/* 5格进度条 */
+.progress-blocks {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.progress-block {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-input);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+}
+
+.progress-block:hover { background: var(--border-hover); }
+
+.progress-block.filled {
+  background: var(--accent);
+  border-color: var(--accent-light);
+}
+
+.progress-block.filled:hover { background: var(--accent-light); }
+
+.progress-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.progress-level-text {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.progress-status-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition);
+  font-family: inherit;
+}
+
+.progress-status-select:focus { border-color: var(--border-focus); }
+
+.progress-card-note {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+  padding: 8px 10px;
+  resize: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.progress-card-note:focus {
+  border-color: var(--border-default);
+}
+
+.progress-card-note::placeholder { color: var(--text-disabled); }
+
+.progress-updated {
+  font-size: 10px;
+  color: var(--text-disabled);
+  margin-top: 6px;
+  text-align: right;
+}
