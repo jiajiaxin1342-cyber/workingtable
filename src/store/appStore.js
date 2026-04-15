@@ -612,15 +612,38 @@ const useAppStore = create(
       toggleMentorPanel: () => set((s) => ({ mentorPanelOpen: !s.mentorPanelOpen })),
 
       // ════════════════════════════════════════
+      // 速记小本  QuickNote[]
+      // { id, text, createdAt, done }
+      // ════════════════════════════════════════
+
+      quickNotes: [],
+
+      addQuickNote: (text) => {
+        const note = { id: Date.now(), text: text.trim(), createdAt: new Date().toISOString(), done: false }
+        set((s) => ({ quickNotes: [note, ...s.quickNotes] }))
+      },
+
+      deleteQuickNote: (id) =>
+        set((s) => ({ quickNotes: s.quickNotes.filter((n) => n.id !== id) })),
+
+      clearQuickNotes: () => set({ quickNotes: [] }),
+
+      toggleQuickNoteDone: (id) =>
+        set((s) => ({
+          quickNotes: s.quickNotes.map((n) => n.id === id ? { ...n, done: !n.done } : n),
+        })),
+
+      // ════════════════════════════════════════
       // 假设验证  Hypothesis[]
       // { id, title, mvp, notes: [{id, content, createdAt}], createdAt }
       // ════════════════════════════════════════
 
       hypotheses: [],
 
-      addHypothesis: ({ title, mvp }) => {
+      addHypothesis: ({ name, title, mvp }) => {
         const h = {
           id: Date.now(),
+          name: (name || '').trim(),
           title: title.trim(),
           mvp: mvp.trim(),
           notes: [],
@@ -646,6 +669,13 @@ const useAppStore = create(
         set((s) => ({
           hypotheses: s.hypotheses.map((h) =>
             h.id !== hypothesisId ? h : { ...h, notes: h.notes.filter((n) => n.id !== noteId) }
+          ),
+        })),
+
+      updateHypothesis: (id, patch) =>
+        set((s) => ({
+          hypotheses: s.hypotheses.map((h) =>
+            h.id !== id ? h : { ...h, ...patch, updatedAt: new Date().toISOString() }
           ),
         })),
 
@@ -760,6 +790,17 @@ const useAppStore = create(
             ),
           },
         })),
+
+      // 交换两条信号源便签的位置（传入各自 id）
+      swapObservationNotes: (idA, idB) =>
+        set((s) => {
+          const arr = [...(s.drafts.observation || [])]
+          const iA = arr.findIndex((n) => n.id === idA)
+          const iB = arr.findIndex((n) => n.id === idB)
+          if (iA === -1 || iB === -1) return s
+          ;[arr[iA], arr[iB]] = [arr[iB], arr[iA]]
+          return { drafts: { ...s.drafts, observation: arr } }
+        }),
 
     }),
     {

@@ -7,15 +7,15 @@ import MentorChat from './components/MentorChat'
 import Settings from './components/Settings'
 import StartupScene from './components/startup/StartupScene'
 import InfluenceScene from './components/influence/InfluenceScene'
+import { takeDailySnapshot } from './utils/backup'
 import './App.css'
 
 function App() {
   const activeScene = useAppStore((s) => s.activeScene)
-  const createBackup = useAppStore((s) => s.createBackup)
   const theme = useAppStore((s) => s.theme)
 
-  // 每次启动时自动保存一份快照（最多保留5份）
-  useEffect(() => { createBackup() }, [])
+  // 每天首次打开时自动快照
+  useEffect(() => { takeDailySnapshot() }, [])
 
   // 将主题写入 html 根节点的 data-theme 属性
   useEffect(() => {
@@ -47,11 +47,11 @@ function App() {
       {/* 右侧 AI 导师（设置页隐藏） */}
       {!isSettings && mentorPanelOpen && <MentorChat />}
 
-      {/* 导师收起时的展开条 */}
+      {/* 速记小本收起时的展开条 */}
       {!isSettings && !mentorPanelOpen && (
-        <button className="mentor-collapsed-strip" onClick={toggleMentorPanel} title="展开 AI 教练">
-          <span className="mentor-collapsed-icon">🎓</span>
-          <span className="mentor-collapsed-label">AI 教练</span>
+        <button className="mentor-collapsed-strip" onClick={toggleMentorPanel} title="展开速记小本">
+          <span className="mentor-collapsed-icon">✏️</span>
+          <span className="mentor-collapsed-label">速记</span>
         </button>
       )}
     </div>

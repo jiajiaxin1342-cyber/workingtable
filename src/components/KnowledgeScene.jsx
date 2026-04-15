@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useAppStore from '../store/appStore'
-import FeedTab from './knowledge/FeedTab'
 import KBTab from './knowledge/KBTab'
 import ProgressTab from './knowledge/ProgressTab'
 import SocialTab from './product/SocialTab'
@@ -94,58 +93,78 @@ function WebViewPage({ url, onBack }) {
   )
 }
 
-// ── 信号源（便签 + 可折叠原则）────────────────────────────────────────────────
+// ── 信号源（便签 + 原则 tab 在右侧）─────────────────────────────────────────
 
 function SignalSourceSection() {
-  const [principleOpen, setPrincipleOpen] = useState(false)
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto' }}>
-      {/* 原则折叠区 */}
-      <div className="signal-principle-bar">
-        <button
-          className="signal-principle-toggle"
-          onClick={() => setPrincipleOpen((v) => !v)}
-        >
-          {principleOpen ? '▾' : '▸'} 原则
-        </button>
-      </div>
-      {principleOpen && (
-        <div className="signal-principle-panel">
-          <FeedTab />
-        </div>
-      )}
-
-      {/* 便签主体 */}
       <KBTab />
     </div>
   )
 }
 
-// ── 产品分析台（原则子tab + 分析台子tab）──────────────────────────────────────
+// ── 产品分析台（赛道 tab 动态生成 + 原则在最右）─────────────────────────────
 
 function ProductAnalysisSection() {
-  const [subTab, setSubTab] = useState('analysis')
+  const products = useAppStore((s) => s.products ?? [])
+
+  // 从产品数据动态派生赛道 tab
+  const tracks      = [...new Set(products.map((p) => p.track).filter(Boolean))]
+  const hasUntagged = products.some((p) => !p.track)
+  const trackTabs   = [...tracks, ...(hasUntagged ? ['__untagged__'] : [])]
+
+  const [activeTab, setActiveTab] = useState(() => trackTabs[0] ?? 'principle')
+  const [showForm,  setShowForm]  = useState(false)
+
+  // 当赛道列表变化时，若当前 tab 已不存在则重置
+  useEffect(() => {
+    if (activeTab !== 'principle' && !trackTabs.includes(activeTab)) {
+      setActiveTab(trackTabs[0] ?? 'principle')
+    }
+  }, [trackTabs.join(',')])  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const tabLabel = (t) => t === '__untagged__' ? '未分类' : t
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* 单行 header：赛道 tabs · 新增 · 原则 */}
       <div className="kb-sub-tabs">
+        {trackTabs.map((t) => (
+          <button
+            key={t}
+            className={`kb-sub-tab ${activeTab === t ? 'active' : ''}`}
+            onClick={() => setActiveTab(t)}
+          >
+            {tabLabel(t)}
+          </button>
+        ))}
+
+        <div style={{ flex: 1 }} />
+
+        {activeTab !== 'principle' && !showForm && (
+          <button className="sticky-add-btn" onClick={() => setShowForm(true)}>
+            + 新增分析
+          </button>
+        )}
+
         <button
-          className={`kb-sub-tab ${subTab === 'analysis' ? 'active' : ''}`}
-          onClick={() => setSubTab('analysis')}
-        >
-          分析台
-        </button>
-        <button
-          className={`kb-sub-tab ${subTab === 'principle' ? 'active' : ''}`}
-          onClick={() => setSubTab('principle')}
+          className={`kb-sub-tab ${activeTab === 'principle' ? 'active' : ''}`}
+          onClick={() => setActiveTab('principle')}
         >
           原则
         </button>
       </div>
+
       <div style={{ flex: 1, overflow: 'auto' }}>
-        {subTab === 'analysis'  && <AnalysisTab />}
-        {subTab === 'principle' && <SocialTab />}
+        {activeTab !== 'principle' && (
+          <AnalysisTab
+            filterTrack={trackTabs.length > 0 ? activeTab : null}
+            defaultTrack={activeTab !== '__untagged__' ? activeTab : ''}
+            showForm={showForm}
+            setShowForm={setShowForm}
+          />
+        )}
+        {activeTab === 'principle' && <SocialTab />}
       </div>
     </div>
   )

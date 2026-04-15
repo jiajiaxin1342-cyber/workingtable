@@ -660,3 +660,255 @@
   font-size: 11px;
   color: var(--text-muted);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   产品分析台 — 卡片式设计
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 工具栏 ─────────────────────────────────────────────────────────────── */
+.analysis-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.analysis-toolbar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* ── 新增 / 编辑表单 ────────────────────────────────────────────────────── */
+.analysis-form,
+.analysis-edit-form {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.analysis-form-row { margin-bottom: 12px; }
+.analysis-form-row:last-of-type { margin-bottom: 0; }
+
+.analysis-form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.analysis-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.analysis-input:focus { border-color: var(--border-focus); }
+.analysis-input::placeholder { color: var(--text-muted); }
+
+.analysis-textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 8px 10px;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.analysis-textarea:focus { border-color: var(--border-focus); }
+.analysis-textarea::placeholder { color: var(--text-muted); }
+
+.analysis-form-actions,
+.analysis-edit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.analysis-edit-row-two {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* ── 分析卡片 ────────────────────────────────────────────────────────────── */
+.analysis-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition);
+}
+.analysis-card:hover { border-color: var(--border-hover); }
+
+.analysis-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.analysis-card-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.analysis-track-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-bg);
+  color: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.analysis-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-card-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.analysis-card-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.analysis-card-chevron {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.analysis-card-body {
+  border-top: 1px solid var(--border-subtle);
+  padding: 12px 14px 14px;
+}
+
+.analysis-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ── POV 只读展示 ────────────────────────────────────────────────────────── */
+.pov-display { display: flex; flex-direction: column; gap: 10px; }
+
+.pov-display-verdict {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.6;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+}
+
+.pov-display-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pov-display-sub-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.pov-display-item {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 3px;
+}
+
+.pov-display-field { display: flex; flex-direction: column; gap: 4px; }
+
+.pov-display-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+/* ── 卡片内容预览（折叠态常显，每字段一行截断）────────────────────────── */
+.analysis-card-preview {
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.analysis-preview-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.analysis-preview-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 42px;
+}
+
+.analysis-preview-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import useAppStore from '../../store/appStore'
+import FeedTab from './FeedTab'
 
 const NOTE_TYPE_STYLES = {
   '趋势感知': { color: '#63b3ed', bg: 'rgba(99,179,237,0.08)',  border: 'rgba(99,179,237,0.22)' },
@@ -82,7 +83,7 @@ function AddNoteForm({ onCancel }) {
 
 // ── 便签卡片（支持编辑） ─────────────────────────────────────────────────────
 
-function StickyNote({ note }) {
+function StickyNote({ note, isFirst, isLast, onMoveUp, onMoveDown }) {
   const deleteDraft          = useAppStore((s) => s.deleteDraft)
   const updateObservationNote = useAppStore((s) => s.updateObservationNote)
 
@@ -148,7 +149,24 @@ function StickyNote({ note }) {
         <span className="sticky-note-type" style={{ color: style.color }}>
           {note.noteType || '其它'}
         </span>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {/* 排序按钮 */}
+          <button
+            className="sticky-move-btn"
+            onClick={onMoveUp}
+            disabled={isFirst}
+            title="上移"
+          >↑</button>
+          <button
+            className="sticky-move-btn"
+            onClick={onMoveDown}
+            disabled={isLast}
+            title="下移"
+          >↓</button>
+
+          <div style={{ width: 4 }} />
+
+          {/* 编辑 / 删除 */}
           <button className="sticky-note-del" onClick={() => setEditing(true)} title="编辑">✎</button>
           {confirmDelete ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -176,9 +194,11 @@ function StickyNote({ note }) {
 // ── 主组件 ──────────────────────────────────────────────────────────────────
 
 export default function KBTab() {
-  const drafts = useAppStore((s) => s.drafts.observation || [])
-  const [filter,   setFilter]   = useState('全部')
-  const [showForm, setShowForm] = useState(false)
+  const drafts              = useAppStore((s) => s.drafts.observation || [])
+  const swapObservationNotes = useAppStore((s) => s.swapObservationNotes)
+  const [filter,        setFilter]        = useState('全部')
+  const [showForm,      setShowForm]      = useState(false)
+  const [principleOpen, setPrincipleOpen] = useState(false)
 
   const notes    = drafts.filter((d) => d.status === 'published')
   const filtered = filter === '全部' ? notes : notes.filter((n) => (n.noteType || '其它') === filter)
@@ -186,7 +206,7 @@ export default function KBTab() {
 
   return (
     <div>
-      {/* 顶部操作栏 */}
+      {/* 顶部操作栏（单行：过滤 · 新增 · 原则） */}
       <div className="sticky-toolbar">
         <div className="sticky-filter-bar">
           {FILTER_TYPES.map((t) => (
@@ -202,12 +222,27 @@ export default function KBTab() {
             </button>
           ))}
         </div>
+        <div style={{ flex: 1 }} />
         {!showForm && (
           <button className="sticky-add-btn" onClick={() => setShowForm(true)}>
             + 新增信号
           </button>
         )}
+        <button
+          className={`sticky-filter-chip ${principleOpen ? 'active' : ''}`}
+          style={{ flexShrink: 0 }}
+          onClick={() => setPrincipleOpen((v) => !v)}
+        >
+          原则
+        </button>
       </div>
+
+      {/* 原则面板 */}
+      {principleOpen && (
+        <div className="signal-principle-panel">
+          <FeedTab />
+        </div>
+      )}
 
       {/* 新增表单 */}
       {showForm && <AddNoteForm onCancel={() => setShowForm(false)} />}
@@ -224,8 +259,15 @@ export default function KBTab() {
         </div>
       ) : (
         <div className="sticky-grid">
-          {filtered.map((note) => (
-            <StickyNote key={note.id} note={note} />
+          {filtered.map((note, idx) => (
+            <StickyNote
+              key={note.id}
+              note={note}
+              isFirst={idx === 0}
+              isLast={idx === filtered.length - 1}
+              onMoveUp={() => swapObservationNotes(note.id, filtered[idx - 1].id)}
+              onMoveDown={() => swapObservationNotes(note.id, filtered[idx + 1].id)}
+            />
           ))}
         </div>
       )}

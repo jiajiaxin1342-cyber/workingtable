@@ -1,73 +1,50 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import useAppStore from '../store/appStore'
-import { callClaude, buildKnowledgePrompt, buildProductPrompt } from '../api/claude'
-import { shouldTriggerCritique, generatePeriodCritique } from '../api/reports'
 
-const MAX_HISTORY = 20 // 每个场景最多保留20条
-
-// ── 学习进度卡片（知识场景顶部） ─────────────────────────────────────────────
-
-function ProgressCard({ goal, articleCount, kbCount }) {
-  const daysLeft = goal?.targetDate
-    ? Math.max(0, Math.ceil((new Date(goal.targetDate) - Date.now()) / 86400000))
-    : null
-
-  if (!goal?.title && articleCount === 0) return null
-
-  return (
-    <div className="mentor-progress-card">
-      {goal?.title ? (
-        <div className="mpc-goal">
-          <span className="mpc-label">目标</span>
-          <span className="mpc-goal-text">{goal.title}</span>
-        </div>
-      ) : (
-        <div className="mpc-goal">
-          <span className="mpc-label">目标</span>
-          <span className="mpc-goal-text" style={{ color: '#4a5568' }}>未设定</span>
-        </div>
-      )}
-      <div className="mpc-stats">
-        <div className="mpc-stat">
-          <span className="mpc-num">{articleCount}</span>
-          <span className="mpc-stat-label">已读</span>
-        </div>
-        <div className="mpc-divider" />
-        <div className="mpc-stat">
-          <span className="mpc-num">{kbCount}</span>
-          <span className="mpc-stat-label">知识库</span>
-        </div>
-        {daysLeft !== null && (
-          <>
-            <div className="mpc-divider" />
-            <div className="mpc-stat">
-              <span className="mpc-num" style={{ color: daysLeft < 7 ? '#fc8181' : '#63b3ed' }}>
-                {daysLeft}
-              </span>
-              <span className="mpc-stat-label">天</span>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
+function formatTime(iso) {
+  const d = new Date(iso)
+  const now = new Date()
+  const isToday = d.toDateString() === now.toDateString()
+  if (isToday) {
+    return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  }
+  return d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-// ── 消息气泡 ──────────────────────────────────────────────────────────────────
+// ── 单条速记 ──────────────────────────────────────────────────────────────────
 
-function MessageBubble({ msg }) {
-  if (msg.role === 'notice') {
-    return (
-      <div className="message-notice">
-        <span>{msg.content}</span>
-      </div>
-    )
+function NoteItem({ note }) {
+  const deleteQuickNote    = useAppStore((s) => s.deleteQuickNote)
+  const toggleQuickNoteDone = useAppStore((s) => s.toggleQuickNoteDone)
+  const addObservationNote  = useAppStore((s) => s.addObservationNote)
+
+  const handlePromote = () => {
+    addObservationNote({ noteType: '其它', title: '', body: note.text })
+    deleteQuickNote(note.id)
   }
 
   return (
-    <div className={`message ${msg.role}`}>
-      <div className="message-bubble" style={{ whiteSpace: 'pre-wrap' }}>
-        {msg.content}
+    <div className={`qn-item ${note.done ? 'done' : ''}`}>
+      <button
+        className="qn-check"
+        onClick={() => toggleQuickNoteDone(note.id)}
+        title={note.done ? '标记未完成' : '标记完成'}
+      >
+        {note.done ? '✓' : '○'}
+      </button>
+
+      <div className="qn-body">
+        <p className="qn-text">{note.text}</p>
+        <span className="qn-time">{formatTime(note.createdAt)}</span>
+      </div>
+
+      <div className="qn-actions">
+        <button className="qn-promote" onClick={handlePromote} title="存入信号源">
+          →
+        </button>
+        <button className="qn-del" onClick={() => deleteQuickNote(note.id)} title="删除">
+          ×
+        </button>
       </div>
     </div>
   )
@@ -75,226 +52,116 @@ function MessageBubble({ msg }) {
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
-export default function MentorChat() {
+export default function QuickNotepad() {
   const toggleMentorPanel = useAppStore((s) => s.toggleMentorPanel)
+  const quickNotes        = useAppStore((s) => s.quickNotes)
+  const addQuickNote      = useAppStore((s) => s.addQuickNote)
+  const clearQuickNotes   = useAppStore((s) => s.clearQuickNotes)
 
-  const {
-    activeScene,
-    chatHistory,
-    addMentorMessage,
-    clearMentorChat,
-    pendingMentorMessage,
-    clearPendingMentorMessage,
-    goal,
-    articles,
-    kbItems,
-    products,
-    activeProductId,
-    reviews,
-    lastCritiqueAt,
-    setLastCritiqueAt,
-  } = useAppStore()
-
-  const messages = chatHistory[activeScene] || []
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [streamingText, setStreamingText] = useState('')
-  const bottomRef = useRef(null)
-  const critiqueChecked = useRef(false) // 每次会话只检查一次
+  const [confirmClear, setConfirmClear] = useState(false)
+  const textareaRef = useRef(null)
 
-  // 滚动到底部
+  // 自动撑高 textarea
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, streamingText])
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px'
+  }, [input])
 
-// 阶段性锐评：知识场景 mount 时检查是否超过 7 天未锐评
-  useEffect(() => {
-    if (critiqueChecked.current) return
-    if (activeScene !== 'knowledge') return
-    // 数据不足时不锐评（至少要有几篇文章）
-    if (articles.length < 2) return
-    if (!shouldTriggerCritique(lastCritiqueAt)) return
-
-    critiqueChecked.current = true
-    setLastCritiqueAt(new Date().toISOString())
-
-    // 非阻塞：先插入一个 notice，等锐评生成后再追加
-    addMentorMessage('knowledge', {
-      role: 'notice',
-      content: '— ⚡ 导师自动锐评（每周触发一次）—',
-    })
-
-    generatePeriodCritique({ goal, articles, kbItems })
-      .then((text) => {
-        addMentorMessage('knowledge', {
-          role: 'assistant',
-          content: `⚡ 阶段锐评\n\n${text}`,
-        })
-      })
-      .catch(() => {}) // 锐评失败静默处理，不影响使用
-  }, []) // 仅 mount 时执行一次
-
-  // 外部触发消息（来自「导师解读」「教练评估」等按钮）
-  useEffect(() => {
-    if (pendingMentorMessage && !loading) {
-      const msg = pendingMentorMessage
-      clearPendingMentorMessage()
-      sendToMentor(msg)
-    }
-  }, [pendingMentorMessage])
-
-  const getSystemPrompt = useCallback(() => {
-    if (activeScene === 'knowledge') {
-      return buildKnowledgePrompt({ goal, articles, kbItems })
-    }
-    return buildProductPrompt({ products, activeProductId, reviews })
-  }, [activeScene, goal, articles, kbItems, products, activeProductId, reviews])
-
-  const sendToMentor = async (text) => {
-    if (!text?.trim() || loading) return
-
-    addMentorMessage(activeScene, { role: 'user', content: text })
-
-    // 取最近 MAX_HISTORY 条非notice消息发给 API
-    const allMsgs = [...(chatHistory[activeScene] || []), { role: 'user', content: text }]
-    const apiMessages = allMsgs
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .slice(-MAX_HISTORY)
-      .map(({ role, content }) => ({ role, content }))
-
-    setLoading(true)
-    setStreamingText('')
-    try {
-      const fullText = await callClaude(
-        getSystemPrompt(),
-        apiMessages,
-        (_, accumulated) => setStreamingText(accumulated)
-      )
-      addMentorMessage(activeScene, { role: 'assistant', content: fullText })
-    } catch (err) {
-      addMentorMessage(activeScene, {
-        role: 'assistant',
-        content: `❌ 出错了：${err.message}`,
-      })
-    } finally {
-      setLoading(false)
-      setStreamingText('')
-    }
-  }
-
-  const handleSend = () => {
-    const text = input.trim()
-    if (!text) return
+  const handleAdd = () => {
+    if (!input.trim()) return
+    addQuickNote(input.trim())
     setInput('')
-    sendToMentor(text)
+    textareaRef.current?.focus()
   }
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      handleAdd()
     }
   }
 
-  const currentProduct = products?.find((p) => p.id === activeProductId)
-  const isKnowledge = activeScene === 'knowledge'
+  const handleClear = () => {
+    if (confirmClear) {
+      clearQuickNotes()
+      setConfirmClear(false)
+    } else {
+      setConfirmClear(true)
+      setTimeout(() => setConfirmClear(false), 3000)
+    }
+  }
+
+  const pending = quickNotes.filter((n) => !n.done)
+  const done    = quickNotes.filter((n) => n.done)
 
   return (
     <aside className="mentor-panel">
       {/* 顶部标题栏 */}
       <div className="mentor-header">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span className="mentor-title">
-            {isKnowledge ? '🎓 学习教练' : '🔍 产品教练'}
-          </span>
-          {!isKnowledge && currentProduct && (
-            <span className="mentor-subtitle">{currentProduct.name}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="qn-panel-icon">✏️</span>
+          <span className="mentor-title">速记小本</span>
+          {pending.length > 0 && (
+            <span className="qn-badge">{pending.length}</span>
           )}
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <button className="btn-clear" onClick={() => clearMentorChat(activeScene)}>清空</button>
+          {quickNotes.length > 0 && (
+            <button
+              className="btn-clear"
+              onClick={handleClear}
+              style={confirmClear ? { color: 'var(--red)', borderColor: 'var(--red-border)' } : {}}
+            >
+              {confirmClear ? '确认清空' : '清空'}
+            </button>
+          )}
           <button className="btn-collapse-mentor" onClick={toggleMentorPanel} title="收起">›</button>
         </div>
       </div>
 
-      {/* 学习进度卡片（知识场景专属） */}
-      {isKnowledge && (
-        <ProgressCard
-          goal={goal}
-          articleCount={articles.length}
-          kbCount={kbItems.length}
-        />
-      )}
-
-      {/* 消息区 */}
-      <div className="mentor-messages">
-        {messages.length === 0 && (
-          <div className="mentor-welcome">
-            {isKnowledge ? (
-              <>
-                <p>👋 我是你的学习教练</p>
-                <p style={{ marginTop: 6, fontSize: 12, lineHeight: 1.6 }}>
-                  {goal?.title
-                    ? `帮你达成：「${goal.title}」`
-                    : '先去「学习进度」设定目标吧'}
-                </p>
-              </>
-            ) : (
-              <>
-                <p>🔍 我是你的产品教练</p>
-                <p style={{ marginTop: 6, fontSize: 12, lineHeight: 1.6 }}>
-                  {currentProduct
-                    ? `正在分析「${currentProduct.name}」，有什么想深入拆解的？`
-                    : '先去「产品分析台」选择一个产品吧'}
-                </p>
-              </>
+      {/* 笔记列表 */}
+      <div className="qn-list">
+        {quickNotes.length === 0 ? (
+          <div className="qn-empty">
+            <span className="qn-empty-icon">📋</span>
+            <p>随手记，不用分类</p>
+            <p className="qn-empty-hint">todo、想法、灵感都行<br />Enter 快速添加</p>
+          </div>
+        ) : (
+          <>
+            {pending.map((note) => (
+              <NoteItem key={note.id} note={note} />
+            ))}
+            {done.length > 0 && pending.length > 0 && (
+              <div className="qn-done-divider">已完成 {done.length} 条</div>
             )}
-          </div>
+            {done.map((note) => (
+              <NoteItem key={note.id} note={note} />
+            ))}
+          </>
         )}
-
-        {messages.map((msg, i) => (
-          <MessageBubble key={i} msg={msg} />
-        ))}
-
-        {/* 流式输出中 */}
-        {loading && streamingText && (
-          <div className="message assistant">
-            <div className="message-bubble streaming" style={{ whiteSpace: 'pre-wrap' }}>
-              {streamingText}
-              <span className="typing-cursor" />
-            </div>
-          </div>
-        )}
-        {loading && !streamingText && (
-          <div className="message assistant">
-            <div className="message-bubble loading">
-              <span className="dot" />
-              <span className="dot" />
-              <span className="dot" />
-            </div>
-          </div>
-        )}
-
-        <div ref={bottomRef} />
       </div>
 
       {/* 输入区 */}
-      <div className="mentor-input-area">
+      <div className="qn-input-area">
         <textarea
-          className="mentor-input"
-          placeholder="Enter 发送，Shift+Enter 换行"
+          ref={textareaRef}
+          className="qn-input"
+          placeholder="写下想法或待办…  Enter 记录"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          rows={3}
-          disabled={loading}
+          rows={1}
         />
         <button
-          className="btn-send"
-          onClick={handleSend}
-          disabled={loading || !input.trim()}
+          className="qn-submit"
+          onClick={handleAdd}
+          disabled={!input.trim()}
         >
-          {loading ? '···' : '发送'}
+          记下
         </button>
       </div>
     </aside>

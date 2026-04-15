@@ -1418,7 +1418,7 @@
 }
 
 .kb-sub-tab {
-  padding: 5px 14px;
+  padding: 5px 12px;
   background: transparent;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-pill);
@@ -1429,6 +1429,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  flex-shrink: 0;
 }
 
 .kb-sub-tab.active {
@@ -1755,8 +1756,10 @@
 .sticky-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
   margin-bottom: 14px;
 }
 
@@ -1767,12 +1770,12 @@
 }
 
 .sticky-filter-chip {
-  padding: 4px 10px;
+  padding: 5px 12px;
   background: transparent;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   transition: all var(--transition);
   display: flex;
@@ -1800,7 +1803,7 @@
   background: transparent;
   color: var(--blue);
   border: 1px solid var(--blue-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
@@ -1846,6 +1849,27 @@
   transition: color var(--transition);
 }
 .sticky-note-del:hover { color: var(--red); }
+
+.sticky-move-btn {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 5px;
+  transition: all var(--transition);
+}
+.sticky-move-btn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  background: var(--bg-hover-overlay);
+}
+.sticky-move-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
 
 .sticky-note-title {
   font-size: 13px;
@@ -1985,6 +2009,11 @@
   margin-top: 4px;
 }
 
+/* 假设卡片内联编辑区（复用 form 内部样式，无外层背景/边框） */
+.hyp-edit-form {
+  padding: 4px 16px 12px;
+}
+
 /* 假设卡片 */
 .hyp-card {
   background: var(--bg-elevated);
@@ -1999,7 +2028,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   background: var(--bg-input);
   border-bottom: 1px solid var(--border-default);
 }
@@ -2012,16 +2041,91 @@
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  flex-shrink: 0;
   transition: color var(--transition);
 }
 
 .hyp-collapse-btn:hover { color: var(--text-primary); }
 
+/* 标题 + 时间戳区域（可点击折叠） */
+.hyp-card-title-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.hyp-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hyp-card-timestamps {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .hyp-card-date {
   font-size: 11px;
   color: var(--text-muted);
-  flex: 1;
+  white-space: nowrap;
 }
+
+/* 操作按钮组 */
+.hyp-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* 编辑 / 删除 图标按钮 */
+.hyp-icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  transition: all var(--transition);
+}
+
+.hyp-icon-btn:hover {
+  color: var(--blue);
+  background: var(--blue-bg);
+}
+
+.hyp-icon-btn.del:hover {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+/* 标题输入框 */
+.hyp-name-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.hyp-name-input:focus { border-color: var(--border-focus); }
+.hyp-name-input::placeholder { color: var(--text-muted); }
 
 .hyp-section {
   padding: 12px 14px 0;
