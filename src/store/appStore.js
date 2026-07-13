@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { notionStorage } from '../storage/notion'
+import { syncToFile } from '../storage/dataStore'
 
 // ── 存储后端开关 ───────────────────────────────────────────────────────────────
 // 设为 true 时，写操作会同步调用 notionStorage（Notion API），读操作依然从 localStorage 启动
@@ -809,6 +810,14 @@ const useAppStore = create(
       partialize: (state) => {
         const { pendingMentorMessage, writingPanelOpen, writingActiveTab, readingArticleId, webViewUrl, editingDraftId, ...rest } = state
         return rest
+      },
+      // 每次数据持久化到 localStorage 后，自动同步写入本地文件
+      onRehydrateStorage: () => {
+        return (state, error) => {
+          if (error || !state) return
+          // 延迟同步，等 store 完全初始化后再触发
+          setTimeout(() => syncToFile(), 1000)
+        }
       },
     }
   )

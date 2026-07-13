@@ -390,10 +390,36 @@ function BackupSection() {
       <div className="settings-section-header">
         <h2 className="settings-section-title">数据备份</h2>
         <p className="settings-section-desc">
-          数据存储在浏览器本地（localStorage）。清除浏览器缓存或更换设备会导致数据丢失，建议定期手动导出备份。
+          数据同时保存在浏览器（localStorage）和项目文件夹（data/storage.json）中。有了本地文件备份，即使清除浏览器缓存也能从文件恢复。
         </p>
       </div>
 
+      {/* 本地文件备份状态 */}
+      <div style={{
+        background: '#0f1117',
+        border: '1px solid #2d3748',
+        borderRadius: 8,
+        padding: '12px 14px',
+        marginBottom: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <span style={{ fontSize: 16 }}>📁</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>本地文件备份</span>
+          <span style={{
+            fontSize: 10,
+            padding: '1px 6px',
+            borderRadius: 4,
+            background: '#22543d',
+            color: '#68d391',
+          }}>自动</span>
+        </div>
+        <p style={{ fontSize: 11, color: '#718096', lineHeight: 1.6 }}>
+          数据自动同步到 <code style={{ background: '#1a202c', padding: '1px 6px', borderRadius: 3, color: '#a0aec0' }}>data/storage.json</code>。
+          该文件随 Git 一起提交，换设备后 clone 仓库即可恢复数据。
+        </p>
+      </div>
+
+      {/* 手动导出 */}
       <div className="settings-row" style={{ gap: 10 }}>
         <button className="settings-save-btn" onClick={handleDownload}>
           {downloaded ? '✓ 已导出' : '⬇ 导出 JSON 备份'}
@@ -417,8 +443,15 @@ function BackupSection() {
       )}
 
       <div className="settings-hint" style={{ marginTop: 12 }}>
-        <p>💡 每次打开工作台时，系统会自动保存一份快照（保留最近 5 次），用于应对代码更新导致的数据意外丢失。</p>
-        <p style={{ marginTop: 4, color: '#4a5568' }}>恢复数据：将导出的 JSON 文件内容粘贴回 localStorage 中的 <code style={{ background: '#0f1117', padding: '1px 6px', borderRadius: 4 }}>ai-workbench-storage</code> 键。</p>
+        <p>💡 <strong style={{ color: '#a0aec0' }}>三重保障：</strong></p>
+        <ol style={{ marginTop: 6, paddingLeft: 16, lineHeight: 2, fontSize: 12, color: '#718096' }}>
+          <li><strong style={{ color: '#e2e8f0' }}>本地文件</strong> — data/storage.json，随代码自动同步，换设备恢复</li>
+          <li><strong style={{ color: '#e2e8f0' }}>浏览器存储</strong> — localStorage 运行时缓存，每次修改自动写文件</li>
+          <li><strong style={{ color: '#e2e8f0' }}>手动导出</strong> — 下载 JSON 文件到任意位置，离线安全备份</li>
+        </ol>
+        <p style={{ marginTop: 6, color: '#4a5568', fontSize: 11 }}>
+          ⚠️ 本地文件备份依赖 dev server 运行（npm run dev），生产构建后仅支持手动导出。
+        </p>
       </div>
     </div>
   )

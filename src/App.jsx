@@ -8,14 +8,18 @@ import Settings from './components/Settings'
 import StartupScene from './components/startup/StartupScene'
 import InfluenceScene from './components/influence/InfluenceScene'
 import { takeDailySnapshot } from './utils/backup'
+import { startAutoSync } from './storage/dataStore'
 import './App.css'
 
 function App() {
   const activeScene = useAppStore((s) => s.activeScene)
   const theme = useAppStore((s) => s.theme)
 
-  // 每天首次打开时自动快照
-  useEffect(() => { takeDailySnapshot() }, [])
+  // 启动时：每日快照 + 启动自动同步监听
+  useEffect(() => {
+    takeDailySnapshot()
+    startAutoSync()
+  }, [])
 
   // 将主题写入 html 根节点的 data-theme 属性
   useEffect(() => {

@@ -113,13 +113,13 @@ function ProductAnalysisSection() {
   const hasUntagged = products.some((p) => !p.track)
   const trackTabs   = [...tracks, ...(hasUntagged ? ['__untagged__'] : [])]
 
-  const [activeTab, setActiveTab] = useState(() => trackTabs[0] ?? 'principle')
+  const [activeTab, setActiveTab] = useState(() => trackTabs[0] ?? '__all__')
   const [showForm,  setShowForm]  = useState(false)
 
   // 当赛道列表变化时，若当前 tab 已不存在则重置
   useEffect(() => {
-    if (activeTab !== 'principle' && !trackTabs.includes(activeTab)) {
-      setActiveTab(trackTabs[0] ?? 'principle')
+    if (activeTab !== 'principle' && !trackTabs.includes(activeTab) && activeTab !== '__all__') {
+      setActiveTab(trackTabs[0] ?? '__all__')
     }
   }, [trackTabs.join(',')])  // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -129,6 +129,16 @@ function ProductAnalysisSection() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* 单行 header：赛道 tabs · 新增 · 原则 */}
       <div className="kb-sub-tabs">
+        {/* 无产品时显示「全部」占位 tab */}
+        {trackTabs.length === 0 && (
+          <button
+            className={`kb-sub-tab ${activeTab === '__all__' ? 'active' : ''}`}
+            onClick={() => setActiveTab('__all__')}
+          >
+            全部
+          </button>
+        )}
+
         {trackTabs.map((t) => (
           <button
             key={t}
@@ -158,8 +168,8 @@ function ProductAnalysisSection() {
       <div style={{ flex: 1, overflow: 'auto' }}>
         {activeTab !== 'principle' && (
           <AnalysisTab
-            filterTrack={trackTabs.length > 0 ? activeTab : null}
-            defaultTrack={activeTab !== '__untagged__' ? activeTab : ''}
+            filterTrack={trackTabs.length > 0 && activeTab !== '__all__' ? activeTab : null}
+            defaultTrack={activeTab !== '__untagged__' && activeTab !== '__all__' ? activeTab : ''}
             showForm={showForm}
             setShowForm={setShowForm}
           />

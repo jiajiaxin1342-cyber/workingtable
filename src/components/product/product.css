@@ -912,3 +912,55 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── 模版切换器 ───────────────────────────────────────────────────────────── */
+.template-switcher {
+  display: flex;
+  gap: 0;
+  margin-bottom: 14px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.template-tab {
+  flex: 1;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.template-tab:not(:last-child) {
+  border-right: 1px solid var(--border-default);
+}
+
+.template-tab:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.template-tab.active {
+  background: var(--accent-bg);
+}
+
+.template-tab-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.template-tab.active .template-tab-label {
+  color: var(--accent-light);
+}
+
+.template-tab-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
